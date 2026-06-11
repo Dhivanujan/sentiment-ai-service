@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentimentAI - Premium Sentiment Analysis Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for beautiful analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fa-solid fa-brain-circuit"></i></div>
+                <div class="logo-text">Sentiment<span>AI</span></div>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="single-tab" id="nav-single">
+                    <i class="fa-solid fa-message-captions"></i> Single Text
+                </button>
+                <button class="nav-item" data-tab="batch-tab" id="nav-batch">
+                    <i class="fa-solid fa-list-check"></i> Batch Processor
+                </button>
+                <button class="nav-item" data-tab="playground-tab" id="nav-playground">
+                    <i class="fa-solid fa-terminal"></i> API Playground
+                </button>
+                <button class="nav-item" data-tab="compare-tab" id="nav-compare">
+                    <i class="fa-solid fa-chart-pie"></i> Model Comparison
+                </button>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="dot active"></span>
+                    <span>Service Online</span>
+                </div>
+                <div class="version">v2.0.0</div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-left">
+                    <h1 id="page-title">Single Text Analysis</h1>
+                    <p id="page-subtitle" class="text-muted">Analyze the sentiment, emotions, and specific aspects of individual reviews in real time.</p>
+                </div>
+                <div class="header-right">
+                    <div class="quick-stat">
+                        <span class="stat-label">System State:</span>
+                        <span class="stat-val text-green">Stable <i class="fa-solid fa-circle-check"></i></span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- TAB 1: Single Text Analyzer -->
+            <section id="single-tab" class="tab-panel active">
+                <div class="grid-layout cols-2">
+                    <!-- Input Section -->
+                    <div class="card glass-card">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fa-solid fa-keyboard"></i> Review Input Workspace</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="input-group">
+                                <label for="text-input">Enter Text to Analyze</label>
+                                <textarea id="text-input" placeholder="Type or paste a product review, customer comment, or message here... (e.g. 'The build quality of this product is fantastic! However, the delivery took almost three weeks and was quite frustrating.')"></textarea>
+                                <div class="textarea-actions">
+                                    <span id="char-counter">0 chars</span>
+                                    <button id="clear-btn" class="btn btn-secondary btn-sm"><i class="fa-solid fa-trash-can"></i> Clear</button>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-grid">
+                                <div class="setting-item">
+                                    <label for="model-select">Analysis Model</label>
+                                    <select id="model-select">
+                                        <option value="ml">Logistic Regression (TF-IDF)</option>
+                                        <option value="vader">NLTK VADER Lexicon</option>
+                                    </select>
+                                </div>
+                                <div class="setting-item flex-end">
+                                    <button id="analyze-btn" class="btn btn-primary btn-block"><i class="fa-solid fa-bolt"></i> Run Analysis</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Output Results Section -->
+                    <div class="card glass-card" id="results-card">
+                        <!-- Default Empty State -->
+                        <div class="empty-state" id="results-empty-state">
+                            <div class="avatar-face" id="avatar-neutral">
+                                <svg viewBox="0 0 100 100" width="80" height="80">
+                                    <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="4"></circle>
+                                    <!-- Eyes -->
+                                    <circle cx="35" cy="40" r="4" fill="currentColor"></circle>
+                                    <circle cx="65" cy="40" r="4" fill="currentColor"></circle>
+                                    <!-- Mouth -->
+                                    <line x1="35" y1="65" x2="65" y2="65" stroke="currentColor" stroke-width="4" stroke-linecap="round"></line>
+                                </svg>
+                            </div>
+                            <h3>Awaiting Analysis</h3>
+                            <p class="text-muted">Enter some text on the left and click "Run Analysis" or start typing to see deep cognitive insights.</p>
+                        </div>
+
+                        <!-- Analysis Output Details -->
+                        <div class="results-layout hidden" id="results-data-view">
+                            <!-- Overall Sentiment Header -->
+                            <div class="sentiment-overview">
+                                <div class="overview-left">
+                                    <span class="badge" id="sentiment-badge">POSITIVE</span>
+                                    <div class="confidence-container">
+                                        <span class="label">Confidence:</span>
+                                        <span class="value" id="sentiment-confidence">95.4%</span>
+                                    </div>
+                                    <div class="latency-container">
+                                        <i class="fa-solid fa-gauge-high"></i> <span id="inference-time">0.003s</span>
+                                    </div>
+                                </div>
+                                <div class="overview-right">
+                                    <!-- Dynamic Animated Avatar Face -->
+                                    <div class="sentiment-avatar" id="sentiment-avatar">
+                                        <!-- Happy Face SVG (Default Positive) -->
+                                        <svg id="avatar-positive-svg" class="avatar-svg hidden" viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="45" fill="none" stroke="var(--neon-cyan)" stroke-width="4"></circle>
+                                            <path d="M30 40 Q35 35 40 40" fill="none" stroke="var(--neon-cyan)" stroke-width="4" stroke-linecap="round"></path>
+                                            <path d="M60 40 Q65 35 70 40" fill="none" stroke="var(--neon-cyan)" stroke-width="4" stroke-linecap="round"></path>
+                                            <path d="M30 60 Q50 75 70 60" fill="none" stroke="var(--neon-cyan)" stroke-width="4" stroke-linecap="round"></path>
+                                        </svg>
+                                        <!-- Sad Face SVG -->
+                                        <svg id="avatar-negative-svg" class="avatar-svg hidden" viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="45" fill="none" stroke="var(--neon-magenta)" stroke-width="4"></circle>
+                                            <path d="M30 45 Q35 40 40 45" fill="none" stroke="var(--neon-magenta)" stroke-width="4" stroke-linecap="round"></path>
+                                            <path d="M60 45 Q65 40 70 45" fill="none" stroke="var(--neon-magenta)" stroke-width="4" stroke-linecap="round"></path>
+                                            <path d="M35 68 Q50 55 65 68" fill="none" stroke="var(--neon-magenta)" stroke-width="4" stroke-linecap="round"></path>
+                                        </svg>
+                                        <!-- Neutral Face SVG -->
+                                        <svg id="avatar-neutral-svg" class="avatar-svg hidden" viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="45" fill="none" stroke="var(--text-muted)" stroke-width="4"></circle>
+                                            <circle cx="35" cy="40" r="4" fill="var(--text-muted)"></circle>
+                                            <circle cx="65" cy="40" r="4" fill="var(--text-muted)"></circle>
+                                            <line x1="35" y1="65" x2="65" y2="65" stroke="var(--text-muted)" stroke-width="4" stroke-linecap="round"></line>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Interactive Segment Blocks -->
+                            <div class="tabs-sub">
+                                <button class="subtab-btn active" data-sub="details-subpanel">Cognitive Metrics</button>
+                                <button class="subtab-btn" data-sub="sentences-subpanel">Sentence Highlights</button>
+                            </div>
+
+                            <!-- SUBTAB 1: Metrics -->
+                            <div id="details-subpanel" class="subtab-panel active">
+                                <div class="metrics-grid">
+                                    <!-- Emotion Analytics -->
+                                    <div class="metric-card">
+                                        <h4 class="card-subtitle"><i class="fa-solid fa-face-laugh-beam"></i> Emotional Profile</h4>
+                                        <div class="chart-container-small">
+                                            <canvas id="emotionChart"></canvas>
+                                        </div>
+                                    </div>
+
+                                    <!-- Aspect-Based Sentiment -->
+                                    <div class="metric-card">
+                                        <h4 class="card-subtitle"><i class="fa-solid fa-tags"></i> Aspect Sentiments</h4>
+                                        <div id="aspects-list" class="aspects-wrapper">
+                                            <!-- Dyn loaded -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SUBTAB 2: Sentence Highlights -->
+                            <div id="sentences-subpanel" class="subtab-panel">
+                                <h4 class="card-subtitle"><i class="fa-solid fa-highlighter"></i> Document Segment Classification</h4>
+                                <p class="small text-muted mb-3">Hover or tap on highlighted sentences to check individual contextual scores.</p>
+                                <div id="sentence-highlight-box" class="highlight-container">
+                                    <!-- Dyn loaded -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: Batch Processing -->
+            <section id="batch-tab" class="tab-panel">
+                <div class="grid-layout cols-1-3">
+                    <!-- Batch Upload Area -->
+                    <div class="card glass-card">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fa-solid fa-file-arrow-up"></i> File Uploader</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="file-drop-zone" id="drop-zone">
+                                <i class="fa-solid fa-cloud-arrow-up icon-huge"></i>
+                                <p class="drop-text">Drag & drop your CSV or TXT file here or <span>browse files</span></p>
+                                <input type="file" id="batch-file-input" class="hidden" accept=".csv,.txt">
+                            </div>
+                            
+                            <div class="selected-file-details hidden" id="file-info-container">
+                                <div class="file-icon"><i class="fa-solid fa-file-csv"></i></div>
+                                <div class="file-meta">
+                                    <div class="file-name" id="selected-file-name">reviews.csv</div>
+                                    <div class="file-size" id="selected-file-size">14 KB</div>
+                                </div>
+                                <button class="btn-clear" id="remove-file-btn"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                            
+                            <div class="batch-settings">
+                                <label for="batch-model-select">Analysis Model</label>
+                                <select id="batch-model-select">
+                                    <option value="ml">Logistic Regression (TF-IDF)</option>
+                                    <option value="vader">NLTK VADER Lexicon</option>
+                                </select>
+                                
+                                <button id="process-batch-btn" class="btn btn-primary btn-block mt-3" disabled>
+                                    <i class="fa-solid fa-gears"></i> Process Dataset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Batch Results Dashboard -->
+                    <div class="card glass-card">
+                        <!-- Empty state -->
+                        <div class="empty-state" id="batch-empty-state">
+                            <i class="fa-solid fa-chart-line icon-huge text-muted"></i>
+                            <h3>No Dataset Processed</h3>
+                            <p class="text-muted">Upload a customer reviews CSV or text file to analyze bulk distributions and review details.</p>
+                        </div>
+
+                        <!-- Results Dashboard -->
+                        <div class="batch-results-dashboard hidden" id="batch-dashboard">
+                            <!-- Metrics Cards Grid -->
+                            <div class="dashboard-metrics">
+                                <div class="stat-card">
+                                    <div class="num text-blue" id="batch-total">0</div>
+                                    <div class="lbl">Total Reviews</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="num text-green" id="batch-pos">0</div>
+                                    <div class="lbl">Positive Reviews</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="num text-red" id="batch-neg">0</div>
+                                    <div class="lbl">Negative Reviews</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="num text-muted" id="batch-neu">0</div>
+                                    <div class="lbl">Neutral Reviews</div>
+                                </div>
+                            </div>
+
+                            <div class="grid-layout cols-2 mt-4">
+                                <!-- Chart -->
+                                <div class="dashboard-chart-card">
+                                    <h4 class="card-subtitle"><i class="fa-solid fa-chart-pie"></i> Sentiment Distribution</h4>
+                                    <div class="chart-container-medium">
+                                        <canvas id="batchDoughnutChart"></canvas>
+                                    </div>
+                                </div>
+                                
+                                <!-- Export / Actions -->
+                                <div class="dashboard-actions-card">
+                                    <h4 class="card-subtitle"><i class="fa-solid fa-file-export"></i> Actions & Export</h4>
+                                    <p class="small text-muted mb-4">Export the generated classifications, confidence scores, and NLP data.</p>
+                                    <button class="btn btn-primary" id="export-csv-btn">
+                                        <i class="fa-solid fa-download"></i> Export Classified Dataset (CSV)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Table of Reviews -->
+                            <div class="dataset-preview-container mt-4">
+                                <h4 class="card-subtitle"><i class="fa-solid fa-magnifying-glass"></i> Searchable Review List</h4>
+                                <div class="table-actions">
+                                    <input type="text" id="search-table-input" placeholder="Search reviews by keywords...">
+                                </div>
+                                <div class="table-wrapper">
+                                    <table class="data-table" id="batch-results-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 70%;">Review text</th>
+                                                <th style="width: 15%;">Sentiment</th>
+                                                <th style="width: 15%;">VADER Score</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Dynamic data rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="pagination-footer">
+                                    <span id="table-page-info">Showing 1-10 of 120 reviews</span>
+                                    <div class="pagination-buttons">
+                                        <button class="btn btn-secondary btn-sm" id="prev-page-btn" disabled><i class="fa-solid fa-chevron-left"></i> Previous</button>
+                                        <button class="btn btn-secondary btn-sm" id="next-page-btn"><i class="fa-solid fa-chevron-right"></i> Next</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: API Playground -->
+            <section id="playground-tab" class="tab-panel">
+                <div class="grid-layout cols-2">
+                    <!-- Request Builder and Snippets -->
+                    <div class="card glass-card">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fa-solid fa-code"></i> Developer API Integration</h2>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-4">Integrate the SentimentAI real-time prediction server into your own codebases using our REST API endpoint.</p>
+                            
+                            <h4 class="section-divider">Test Request</h4>
+                            <div class="input-group">
+                                <label for="api-text-input">Query String (text)</label>
+                                <input type="text" id="api-text-input" value="The camera quality is breathtaking, but it overheats easily.">
+                            </div>
+                            <div class="settings-grid">
+                                <div class="setting-item">
+                                    <label for="api-model-select">Selected Model</label>
+                                    <select id="api-model-select">
+                                        <option value="ml">ml</option>
+                                        <option value="vader">vader</option>
+                                    </select>
+                                </div>
+                                <div class="setting-item flex-end">
+                                    <button class="btn btn-primary" id="test-api-btn"><i class="fa-solid fa-paper-plane"></i> Send Request</button>
+                                </div>
+                            </div>
+
+                            <h4 class="section-divider mt-4">Code Snippets</h4>
+                            <div class="code-tabs">
+                                <button class="code-tab-btn active" data-lang="curl">cURL</button>
+                                <button class="code-tab-btn" data-lang="javascript">JavaScript</button>
+                                <button class="code-tab-btn" data-lang="python">Python</button>
+                            </div>
+                            <div class="code-editor-box">
+                                <div class="editor-header">
+                                    <span class="editor-title" id="code-snippet-title">cURL Request</span>
+                                    <button class="copy-btn" id="copy-code-btn"><i class="fa-regular fa-copy"></i> Copy</button>
+                                </div>
+                                <pre><code class="language-bash" id="code-snippet-display"># Loading snippet...</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- JSON Live Response -->
+                    <div class="card glass-card">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fa-solid fa-rectangle-list"></i> JSON API Response</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="editor-header">
+                                <span class="editor-title">HTTP/1.1 200 OK</span>
+                                <span class="badge badge-sm badge-success" id="api-status-badge">Ready</span>
+                            </div>
+                            <div class="json-viewer-box">
+                                <pre><code class="language-json" id="json-response-display">{
+  "status": "ready",
+  "endpoint": "POST /predict",
+  "hint": "Click 'Send Request' on the left to fire a live API request and view structural output here."
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: Model Comparison -->
+            <section id="compare-tab" class="tab-panel">
+                <div class="grid-layout cols-1">
+                    <!-- Models Comparison Table -->
+                    <div class="card glass-card">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fa-solid fa-circle-nodes"></i> Model Benchmark & Architecture</h2>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-4">Compare key performance details, precision profiles, and best use cases for our baseline models.</p>
+                            
+                            <div class="table-wrapper">
+                                <table class="comparison-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Metric / Feature</th>
+                                            <th>Logistic Regression (TF-IDF)</th>
+                                            <th>NLTK VADER Lexicon</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Model Type</strong></td>
+                                            <td>Machine Learning Classification</td>
+                                            <td>Rule & Valence-based Lexicon</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Execution Speed (Latency)</strong></td>
+                                            <td>⚡ Extremely Fast (&lt; 2ms)</td>
+                                            <td>🚀 Ultra Fast (&lt; 1ms)</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Accuracy (IMDB dataset)</strong></td>
+                                            <td>🎯 High (~89.5%)</td>
+                                            <td>📈 Moderate (~75.0%)</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Punctuation/Capitalization Sensitivity</strong></td>
+                                            <td>❌ Low (Ignores punctuation and casing)</td>
+                                            <td>✅ High (Recognizes "GOOD!" vs "good" and uppercase intensity)</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Requires Preprocessing</strong></td>
+                                            <td>✅ Yes (Cleaning, TF-IDF Vectorization)</td>
+                                            <td>❌ No (Analyzes raw inputs)</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Best Use Case</strong></td>
+                                            <td>Formal long reviews, structured feedback</td>
+                                            <td>Social media posts, slang, emojis, short comments</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+</html>
